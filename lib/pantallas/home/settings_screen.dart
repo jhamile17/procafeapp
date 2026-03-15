@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:procafes/config/tema.dart';
+import 'package:procafes/modelos/configuracion_model.dart';
 
 class ConfiguracionScreen extends StatefulWidget {
   const ConfiguracionScreen({super.key});
@@ -10,14 +12,34 @@ class ConfiguracionScreen extends StatefulWidget {
 }
 
 class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
+  // Variables de configuración (en un caso real, estas vendrían de un provider o similar)
+  ConfiguracionModel config = ConfiguracionModel.defaultConfig(); 
+  @override
+  void initState() {
+    super.initState();
+    _cargarConfiguracion();
+  }
 
-  bool notificacionesApp = false;
-  bool sonidoAlerta = false;
-  bool vibracion = false;
-  bool emailDiario = false;
-
-  String tiempoSesion = "30 minutos de inactividad";
-
+  //agregar carga de configuracion desde shared preferences
+  Future<void> _cargarConfiguracion() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      config.notificacionesApp = prefs.getBool('notificacionesApp') ?? true;
+      config.sonidoAlerta = prefs.getBool('sonidoAlerta') ?? true;
+      config.vibracion = prefs.getBool('vibracion') ?? true;
+      config.modoOscuro = prefs.getBool('modoOscuro') ?? false;
+      config.tiempoSesion = prefs.getString('tiempoSesion') ?? "30 minutos de inactividad";
+    });
+  }
+  //agregar guardado de configuracion en shared preferences
+  Future<void> guardarConfiguracion() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notificacionesApp', config.notificacionesApp);
+    await prefs.setBool('sonidoAlerta', config.sonidoAlerta);
+    await prefs.setBool('vibracion', config.vibracion);
+    await prefs.setBool('modoOscuro', config.modoOscuro);
+    await prefs.setString('tiempoSesion', config.tiempoSesion);
+  }
   void _cerrarSesion() {
     context.go('/login');
   }
@@ -52,7 +74,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
 
             const SizedBox(height: 30),
 
-            /// PERFIL CARD
+            /// PERFIL USUARIO
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
@@ -121,19 +143,22 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
               Column(
                 children: [
                   _switchItem(Icons.notifications,
-                      "Notificaciones App", notificacionesApp,
+                      "Notificaciones App", config.notificacionesApp,
                           (val) {
-                        setState(() => notificacionesApp = val);
+                        setState(() => config.notificacionesApp = val);
+                        guardarConfiguracion();
                       }),
                   _switchItem(Icons.volume_up,
-                      "Sonido de alerta", sonidoAlerta,
+                      "Sonido de alerta", config.sonidoAlerta,
                           (val) {
-                        setState(() => sonidoAlerta = val);
+                        setState(() => config.sonidoAlerta = val);
+                        guardarConfiguracion();
                       }),
                   _switchItem(Icons.vibration,
-                      "Vibración", vibracion,
+                      "Vibración", config.vibracion,
                           (val) {
-                        setState(() => vibracion = val);
+                        setState(() => config.vibracion = val);
+                        guardarConfiguracion();
                       }),
                 ],
               ),
@@ -150,20 +175,20 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
 
             const SizedBox(height: 15),
 
-            _cardSeccion(_switchItem(
-              Icons.dark_mode, "Modo oscuro",
-              Theme.of(context).brightness == Brightness.dark, (val) {
-                try {
-                  // Replace this with your actual theme change logic, e.g. using Provider:
-                  // context.read<TuTemaProvider>().cambiarTema(val);
-                  // Or if using a ValueNotifier or similar:
-                  // tuTemaNotifier.value = val;
-                  // For demonstration, we'll just print:
-                  print('Cambiar tema a modo oscuro: $val');
-                } catch (e) {
-                  print('Error al cambiar tema: $e');
-                }
-              })),
+            _cardSeccion(
+              _switchItem(
+              Icons.dark_mode,
+               "Modo oscuro",
+                config.modoOscuro,
+                    (val) {
+                  setState((){
+                    config.modoOscuro = val;  
+                });
+                guardarConfiguracion();
+             },
+            ),
+          ),
+  
 
             const SizedBox(height: 35),
 
@@ -181,7 +206,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 children: [
 
                   DropdownButton<String>(
-                    value: tiempoSesion,
+                    value: config.tiempoSesion,
                     isExpanded: true,
                     items: const [
                       DropdownMenuItem(
@@ -199,8 +224,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                     ],
                     onChanged: (value) {
                       setState(() {
-                        tiempoSesion = value!;
+                        config.tiempoSesion = value!;
                       });
+                      guardarConfiguracion();
                     },
                   ),
 
