@@ -126,3 +126,54 @@ final ThemeData temaEjecutivo = ThemeData(
     type: BottomNavigationBarType.fixed,
   ),
 );
+final ThemeData temaEjecutivoOscuro = ThemeData(
+  useMaterial3: true,
+  brightness: Brightness.dark,
+  fontFamily: 'Albert Sans',
+  scaffoldBackgroundColor: const Color(0xFF0F172A),
+
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: ColoresApp.boton,
+    brightness: Brightness.dark,
+    primary: ColoresApp.boton,
+    error: ColoresApp.peligro,
+  ),
+
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF334155),
+    elevation: 0,
+    centerTitle: false,
+    foregroundColor: Colors.white,
+    titleTextStyle: TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+      color: Colors.white,
+      fontFamily: 'Albert Sans',
+    ),
+  ),
+
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: ColoresApp.boton,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      padding: const EdgeInsets.symmetric(
+        vertical: 16,
+        horizontal: 24,
+      ),
+      textStyle: const TextStyle(
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  ),
+  bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    backgroundColor: Color(0xFF1E293B),
+    selectedItemColor: ColoresApp.boton,
+    unselectedItemColor: Colors.white70,
+    showUnselectedLabels: true,
+    type: BottomNavigationBarType.fixed,
+  ),
+);

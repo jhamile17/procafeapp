@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:procafes/config/tema.dart';
 import 'package:procafes/modelos/configuracion_model.dart';
+import 'package:procafes/servicios/configuracion_service.dart';
+import '../../main.dart';
 
 class ConfiguracionScreen extends StatefulWidget {
   const ConfiguracionScreen({super.key});
@@ -12,34 +13,9 @@ class ConfiguracionScreen extends StatefulWidget {
 }
 
 class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
-  // Variables de configuración (en un caso real, estas vendrían de un provider o similar)
-  ConfiguracionModel config = ConfiguracionModel.defaultConfig(); 
-  @override
-  void initState() {
-    super.initState();
-    _cargarConfiguracion();
-  }
 
-  //agregar carga de configuracion desde shared preferences
-  Future<void> _cargarConfiguracion() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      config.notificacionesApp = prefs.getBool('notificacionesApp') ?? true;
-      config.sonidoAlerta = prefs.getBool('sonidoAlerta') ?? true;
-      config.vibracion = prefs.getBool('vibracion') ?? true;
-      config.modoOscuro = prefs.getBool('modoOscuro') ?? false;
-      config.tiempoSesion = prefs.getString('tiempoSesion') ?? "30 minutos de inactividad";
-    });
-  }
-  //agregar guardado de configuracion en shared preferences
-  Future<void> guardarConfiguracion() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notificacionesApp', config.notificacionesApp);
-    await prefs.setBool('sonidoAlerta', config.sonidoAlerta);
-    await prefs.setBool('vibracion', config.vibracion);
-    await prefs.setBool('modoOscuro', config.modoOscuro);
-    await prefs.setString('tiempoSesion', config.tiempoSesion);
-  }
+  ConfiguracionModel config = ConfiguracionModel.defaultConfig();   
+bool cargando = true;
   void _cerrarSesion() {
     context.go('/login');
   }
@@ -49,10 +25,33 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   }
 
   @override
+    void initState() {
+      super.initState();
+      cargarConfiguracion();
+    }
+  Future<void> cargarConfiguracion()async {
+    config = await ConfiguracionService.cargarConfiguracion();
+    if (config.modoOscuro) {
+      temaNotifier.value = ThemeMode.dark;
+    } else {
+      temaNotifier.value = ThemeMode.light;
+    }
+    setState(() {
+      cargando = false;
+    });
+  }
+  Future<void> guardarConfiguracion() async {
+    await ConfiguracionService.guardarConfiguracion(config);
+  }
+  @override
   Widget build(BuildContext context) {
 
     final theme = Theme.of(context);
-
+    if (cargando) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return SafeArea(
       child: Container(
         color: theme.scaffoldBackgroundColor,
@@ -74,7 +73,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
 
             const SizedBox(height: 30),
 
-            /// PERFIL USUARIO
+            /// PERFIL
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
@@ -144,22 +143,23 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 children: [
                   _switchItem(Icons.notifications,
                       "Notificaciones App", config.notificacionesApp,
-                          (val) {
-                        setState(() => config.notificacionesApp = val);
+                          (val) async{
+                        setState(() {config.notificacionesApp = val;});
                         guardarConfiguracion();
                       }),
                   _switchItem(Icons.volume_up,
                       "Sonido de alerta", config.sonidoAlerta,
-                          (val) {
-                        setState(() => config.sonidoAlerta = val);
-                        guardarConfiguracion();
+                          (val) async {
+                        setState(() {config.sonidoAlerta = val;});
+                        await guardarConfiguracion();
                       }),
                   _switchItem(Icons.vibration,
                       "Vibración", config.vibracion,
-                          (val) {
-                        setState(() => config.vibracion = val);
-                        guardarConfiguracion();
+                          (val) async {
+                        setState(() {config.vibracion = val;});
+                        await guardarConfiguracion();
                       }),
+                      
                 ],
               ),
             ),
@@ -190,6 +190,22 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
           ),
   
 
+
+            _cardSeccion(_switchItem(
+              Icons.dark_mode,
+               "Modo oscuro",
+                config.modoOscuro, (val) async {
+                  setState(() {
+                    config.modoOscuro = val;
+                    if (val) {
+                      temaNotifier.value = ThemeMode.dark;
+                    } else {
+                      temaNotifier.value = ThemeMode.light;
+                    }
+                  });
+                  await guardarConfiguracion();
+                })
+                ),
             const SizedBox(height: 35),
 
             /// SEGURIDAD
@@ -222,11 +238,14 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                         child: Text("1 hora de inactividad"),
                       ),
                     ],
-                    onChanged: (value) {
+                    onChanged: (value) async {
                       setState(() {
                         config.tiempoSesion = value!;
                       });
+
                       guardarConfiguracion();
+                        await guardarConfiguracion();
+
                     },
                   ),
 
