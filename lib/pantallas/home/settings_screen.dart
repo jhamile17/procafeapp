@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:procafes/config/tema.dart';
+import 'package:procafes/modelos/configuracion_model.dart';
 
 class ConfiguracionScreen extends StatefulWidget {
   const ConfiguracionScreen({super.key});
@@ -10,14 +11,8 @@ class ConfiguracionScreen extends StatefulWidget {
 }
 
 class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
-
-  bool notificacionesApp = false;
-  bool sonidoAlerta = false;
-  bool vibracion = false;
-  bool emailDiario = false;
-
-  String tiempoSesion = "30 minutos de inactividad";
-
+  // Variables de configuración (en un caso real, estas vendrían de un provider o similar)
+  ConfiguracionModel config = ConfiguracionModel.defaultConfig(); 
   void _cerrarSesion() {
     context.go('/login');
   }
@@ -121,24 +116,19 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
               Column(
                 children: [
                   _switchItem(Icons.notifications,
-                      "Notificaciones App", notificacionesApp,
+                      "Notificaciones App", config.notificacionesApp,
                           (val) {
-                        setState(() => notificacionesApp = val);
+                        setState(() => config.notificacionesApp = val);
                       }),
                   _switchItem(Icons.volume_up,
-                      "Sonido de alerta", sonidoAlerta,
+                      "Sonido de alerta", config.sonidoAlerta,
                           (val) {
-                        setState(() => sonidoAlerta = val);
+                        setState(() => config.sonidoAlerta = val);
                       }),
                   _switchItem(Icons.vibration,
-                      "Vibración", vibracion,
+                      "Vibración", config.vibracion,
                           (val) {
-                        setState(() => vibracion = val);
-                      }),
-                  _switchItem(Icons.email,
-                      "Email diario", emailDiario,
-                          (val) {
-                        setState(() => emailDiario = val);
+                        setState(() => config.vibracion = val);
                       }),
                 ],
               ),
@@ -155,20 +145,19 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
 
             const SizedBox(height: 15),
 
-            _cardSeccion(_switchItem(
-              Icons.dark_mode, "Modo oscuro",
-              Theme.of(context).brightness == Brightness.dark, (val) {
-                try {
-                  // Replace this with your actual theme change logic, e.g. using Provider:
-                  // context.read<TuTemaProvider>().cambiarTema(val);
-                  // Or if using a ValueNotifier or similar:
-                  // tuTemaNotifier.value = val;
-                  // For demonstration, we'll just print:
-                  print('Cambiar tema a modo oscuro: $val');
-                } catch (e) {
-                  print('Error al cambiar tema: $e');
-                }
-              })),
+            _cardSeccion(
+              _switchItem(
+              Icons.dark_mode,
+               "Modo oscuro",
+                config.modoOscuro,
+                    (val) {
+                  setState((){
+                    config.modoOscuro = val;  
+                });
+             },
+            ),
+          ),
+  
 
             const SizedBox(height: 35),
 
@@ -186,7 +175,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 children: [
 
                   DropdownButton<String>(
-                    value: tiempoSesion,
+                    value: config.tiempoSesion,
                     isExpanded: true,
                     items: const [
                       DropdownMenuItem(
@@ -204,7 +193,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                     ],
                     onChanged: (value) {
                       setState(() {
-                        tiempoSesion = value!;
+                        config.tiempoSesion = value!;
                       });
                     },
                   ),
