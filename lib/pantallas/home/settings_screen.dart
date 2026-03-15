@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:procafes/config/tema.dart';
 import 'package:procafes/modelos/configuracion_model.dart';
 
@@ -13,6 +14,32 @@ class ConfiguracionScreen extends StatefulWidget {
 class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   // Variables de configuración (en un caso real, estas vendrían de un provider o similar)
   ConfiguracionModel config = ConfiguracionModel.defaultConfig(); 
+  @override
+  void initState() {
+    super.initState();
+    _cargarConfiguracion();
+  }
+
+  //agregar carga de configuracion desde shared preferences
+  Future<void> _cargarConfiguracion() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      config.notificacionesApp = prefs.getBool('notificacionesApp') ?? true;
+      config.sonidoAlerta = prefs.getBool('sonidoAlerta') ?? true;
+      config.vibracion = prefs.getBool('vibracion') ?? true;
+      config.modoOscuro = prefs.getBool('modoOscuro') ?? false;
+      config.tiempoSesion = prefs.getString('tiempoSesion') ?? "30 minutos de inactividad";
+    });
+  }
+  //agregar guardado de configuracion en shared preferences
+  Future<void> guardarConfiguracion() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notificacionesApp', config.notificacionesApp);
+    await prefs.setBool('sonidoAlerta', config.sonidoAlerta);
+    await prefs.setBool('vibracion', config.vibracion);
+    await prefs.setBool('modoOscuro', config.modoOscuro);
+    await prefs.setString('tiempoSesion', config.tiempoSesion);
+  }
   void _cerrarSesion() {
     context.go('/login');
   }
@@ -47,7 +74,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
 
             const SizedBox(height: 30),
 
-            /// PERFIL CARD
+            /// PERFIL USUARIO
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
@@ -119,16 +146,19 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                       "Notificaciones App", config.notificacionesApp,
                           (val) {
                         setState(() => config.notificacionesApp = val);
+                        guardarConfiguracion();
                       }),
                   _switchItem(Icons.volume_up,
                       "Sonido de alerta", config.sonidoAlerta,
                           (val) {
                         setState(() => config.sonidoAlerta = val);
+                        guardarConfiguracion();
                       }),
                   _switchItem(Icons.vibration,
                       "Vibración", config.vibracion,
                           (val) {
                         setState(() => config.vibracion = val);
+                        guardarConfiguracion();
                       }),
                 ],
               ),
@@ -154,6 +184,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                   setState((){
                     config.modoOscuro = val;  
                 });
+                guardarConfiguracion();
              },
             ),
           ),
@@ -195,6 +226,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                       setState(() {
                         config.tiempoSesion = value!;
                       });
+                      guardarConfiguracion();
                     },
                   ),
 
