@@ -100,6 +100,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Bienvenido a Procafes',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(heigth: 16),
+                
+                Image.asset(
+                  'assets/images/logo.jpg',
+                  width: 150,
+                  height: 150,
+                ),
+                
                 const SizedBox(height: 32),
                 TextFormField(
                   controller: _usuarioController,
