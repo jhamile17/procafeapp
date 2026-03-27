@@ -23,4 +23,23 @@ class ConfiguracionModel {
       tiempoSesion: "30 minutos de inactividad",
     );
   }
+  // Método para convertir el modelo a un mapa 
+  Map<String, dynamic> toMap() {
+    return {
+      'notificacionesApp': notificacionesApp,
+      'sonidoAlerta': sonidoAlerta,
+      'vibracion': vibracion,
+      'modoOscuro': modoOscuro,
+      'tiempoSesion': tiempoSesion,
+    };
+  }
+  factory ConfiguracionModel.fromMap(Map<String, dynamic> map) {
+    return ConfiguracionModel(
+      notificacionesApp: map['notificacionesApp'] ?? true,
+      sonidoAlerta: map['sonidoAlerta'] ?? true,
+      vibracion: map['vibracion'] ?? true,
+      modoOscuro: map['modoOscuro'] ?? false,
+      tiempoSesion: map['tiempoSesion'] ?? "30 minutos de inactividad",
+    );
+  }
 }

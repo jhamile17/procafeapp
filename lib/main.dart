@@ -5,6 +5,8 @@ import 'package:procafes/config/tema.dart';
 import 'servicios/notificacion_service.dart';
 import 'firebase_options.dart';
 
+ValueNotifier<ThemeMode> temaNotifier = ValueNotifier(ThemeMode.light);
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -24,11 +26,18 @@ class ProcafeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: temaNotifier,
+      builder: (context, ThemeMode modo, _) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Procafes',
       theme: temaEjecutivo,
+      darkTheme: temaEjecutivoOscuro,
+      themeMode: modo,
       routerConfig: AppRutas.router,
     );
   }
+);
+}
 }
